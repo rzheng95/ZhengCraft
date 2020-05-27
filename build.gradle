@@ -1,14 +1,55 @@
 plugins {
     id 'java'
+    id 'maven'
+    id 'net.minecrell.plugin-yml.bukkit' version '0.3.0'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
 }
 
-group 'org.example'
-version '1.0-SNAPSHOT'
+group = 'com.rzheng'
+version = '0.0.1'
+description = ' A Minecraft plugin to test Spring Boot and PostgreSQL.'
+
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
 
 repositories {
     mavenCentral()
+    maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compileOnly 'org.spigotmc:spigot-api:1.15.2-R0.1-SNAPSHOT'
 }
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+bukkit {
+    name = 'ZhengCraft'
+    version = version
+    description = description
+    author = 'Richard Zheng'
+
+    main = 'com.rzheng.zhengcraft.ZhengCraftMainPlugin'
+    apiVersion = '1.13'
+
+    commands {
+        zhengcraft {
+            description = "Zheng Craft Main Command"
+        }
+    }
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Version': archiveVersion.get(), 'Specification-Version': archiveVersion.get()
+    }
+}
+
+shadowJar {
+    archiveClassifier.set('dist')
+}
+
+tasks.build.dependsOn(tasks.shadowJar)
