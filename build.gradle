@@ -7,7 +7,7 @@ plugins {
 
 group = 'com.rzheng'
 version = '0.0.1'
-description = ' A Minecraft plugin to test Spring Boot and PostgreSQL.'
+description = 'A Minecraft plugin to test Spring Boot and PostgreSQL.'
 
 sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
@@ -19,6 +19,11 @@ repositories {
 }
 
 dependencies {
+
+//    implementation 'org.postgresql:postgresql'
+//    implementation 'com.zaxxe:HikariCP'
+    compile group: 'org.postgresql', name: 'postgresql', version: '42.2.12'
+    compile group: 'com.zaxxer', name: 'HikariCP', version: '3.4.5'
     compileOnly 'org.spigotmc:spigot-api:1.15.2-R0.1-SNAPSHOT'
 }
 
@@ -50,6 +55,10 @@ jar {
 
 shadowJar {
     archiveClassifier.set('dist')
+}
+
+test {
+    useJUnitPlatform()
 }
 
 tasks.build.dependsOn(tasks.shadowJar)
