@@ -3,6 +3,7 @@ package com.rzheng.zhengcraft.dao;
 import com.rzheng.zhengcraft.entities.Player;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface PlayerDao {
@@ -15,7 +16,7 @@ public interface PlayerDao {
 
     List<Player> getPlayers();
 
-    Player getPlayerById(UUID id);
+    Optional<Player> getPlayerById(UUID id);
 
     Player getPlayerByName(String name);
 

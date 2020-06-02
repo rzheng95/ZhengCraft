@@ -26,6 +26,8 @@ public class ZhengCraftMainListener implements Listener {
 
         List<Player> players = playerDataAccessService.getPlayers();
 
+        playerDataAccessService.addPlayer(e.getPlayer().getUniqueId(), e.getPlayer().getName());
+
         System.out.println("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW: " + players.get(0).getName());
     }
 
