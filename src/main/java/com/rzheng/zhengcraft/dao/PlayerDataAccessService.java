@@ -11,45 +11,45 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
-public class PlayerDataAccessService implements PlayerDao {
+public class PlayerDataAccessService {
 
     private Connection connection;
 
     public PlayerDataAccessService() {
         try {
             this.connection = PostgresDatasource.hikariDataSource().getConnection();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+        } catch (SQLException throwable) {
+            throwable.printStackTrace();
         }
     }
 
-    @Override
-    public int addPlayer(UUID id, String name) {
+
+    public Predicate<Player> addPlayer = player -> {
         final String sql = "INSERT INTO player (id, name) VALUES (?, ?)";
 
-        if (getPlayerById(id).isEmpty()) {
-            try(PreparedStatement statement = connection.prepareStatement(sql);) {
+        if (this.getPlayerById.apply(player.getId()).isEmpty()) {
+            try (PreparedStatement statement = connection.prepareStatement(sql);) {
 
-                statement.setObject(1, id);
-                statement.setString(2, name);
+                statement.setObject(1, player.getId());
+                statement.setString(2, player.getName());
                 statement.executeQuery();
-
-                return 1;
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
+                return true;
+            } catch (SQLException throwable) {
+                throwable.printStackTrace();
             }
         }
-        return 0;
-    }
+        return false;
+    };
 
-    @Override
-    public List<Player> getPlayers() {
+    public Supplier<Optional<List<Player>>> getPlayers = () -> {
         List<Player> players = new ArrayList<>();
         final String sql = "SELECT * FROM player";
-
-        try(PreparedStatement statement = connection.prepareStatement(sql);
-            ResultSet resultSet = statement.executeQuery();) {
+        try (PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery();) {
 
             while (resultSet.next()) {
                 UUID id = UUID.fromString(resultSet.getString("id"));
@@ -57,48 +57,62 @@ public class PlayerDataAccessService implements PlayerDao {
                 players.add(new Player(id, name));
             }
 
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+        } catch (SQLException throwable) {
+            throwable.printStackTrace();
         }
-        return players;
-    }
+        return Optional.of(players);
+    };
 
-    @Override
-    public Optional<Player> getPlayerById(UUID id) {
-        List<Player> players = new ArrayList<>();
 
+    public Function<UUID, Optional<Player>> getPlayerById = id -> {
+        Player player = null;
         final String sql = "SELECT * FROM player WHERE id = ?";
-        try(PreparedStatement statement = connection.prepareStatement(sql);) {
 
+        try (PreparedStatement statement = connection.prepareStatement(sql);) {
             statement.setObject(1, id);
             ResultSet resultSet = statement.executeQuery();
+            List<Player> players = new ArrayList<>();
             while (resultSet.next()) {
                 UUID playerId = UUID.fromString(resultSet.getString("id"));
                 String name = resultSet.getString("name");
                 players.add(new Player(playerId, name));
             }
+            if (players.size() > 0) {
+                player = players.get(0);
+            }
             resultSet.close();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+        } catch (SQLException throwable) {
+            throwable.printStackTrace();
         }
 
-        if (players.size() > 0)
-            return Optional.ofNullable(players.get(0));
-        return Optional.empty();
-    }
+        return Optional.ofNullable(player);
+    };
 
-    @Override
-    public Player getPlayerByName(String name) {
-        return null;
-    }
 
-    @Override
-    public int updatePlayer(Player player) {
-        return 0;
-    }
+    public Predicate<Player> updatePlayer = player -> {
+        final String sql = "UPDATE player SET name = ? WHERE id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, player.getName());
+            statement.setObject(2, player.getId());
+            statement.executeUpdate();
+            return true;
+        } catch (SQLException throwable) {
+            throwable.printStackTrace();
+        }
+        return false;
+    };
 
-    @Override
-    public int deletePlayerById(UUID id) {
-        return 0;
-    }
+
+    public Predicate<UUID> deletePlayerById = id -> {
+        final String sql = "DELETE FROM player WHERE id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql);) {
+            statement.setObject(1, id);
+            statement.executeUpdate();
+            return true;
+        } catch (SQLException throwable) {
+            throwable.printStackTrace();
+        }
+        return false;
+    };
+
 }

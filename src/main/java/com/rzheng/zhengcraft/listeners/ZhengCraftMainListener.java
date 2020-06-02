@@ -7,6 +7,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 public class ZhengCraftMainListener implements Listener {
@@ -24,11 +26,20 @@ public class ZhengCraftMainListener implements Listener {
 
         e.getPlayer().sendMessage("You broke " + e.getBlock().getBlockData().getMaterial());
 
-        List<Player> players = playerDataAccessService.getPlayers();
+        Optional<List<Player>> players = playerDataAccessService.getPlayers.get();
 
-        playerDataAccessService.addPlayer(e.getPlayer().getUniqueId(), e.getPlayer().getName());
+        players.get().stream()
+                .map(player ->
+                    player.getId().toString()
+                        .concat("\t")
+                        .concat(player.getName()))
+                .collect(Collectors.toSet())
+                .forEach(System.out::println);
 
-        System.out.println("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW: " + players.get(0).getName());
+        playerDataAccessService.addPlayer.test(new Player(e.getPlayer().getUniqueId(), e.getPlayer().getName()));
+//        playerDataAccessService.addPlayer2(new Player(e.getPlayer().getUniqueId(), e.getPlayer().getName()));
+
+
     }
 
 //    @EventHandler

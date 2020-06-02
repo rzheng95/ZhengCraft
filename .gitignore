@@ -4,6 +4,7 @@
 /build
 /buildSrc/build
 */build
+*.yml
 
 # Maven
 # -----
