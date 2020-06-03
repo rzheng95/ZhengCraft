@@ -36,7 +36,7 @@ public class PlayerDataAccessService {
 
                 statement.setObject(1, player.getId());
                 statement.setString(2, player.getName());
-                statement.executeQuery();
+                statement.executeUpdate();
                 return true;
             } catch (SQLException throwable) {
                 throwable.printStackTrace();

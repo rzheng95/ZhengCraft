@@ -1,23 +1,27 @@
 package com.rzheng.zhengcraft.listeners;
 
+import com.rzheng.zhengcraft.dao.BlockDataAccessService;
 import com.rzheng.zhengcraft.dao.PlayerDataAccessService;
+import com.rzheng.zhengcraft.entities.Block;
 import com.rzheng.zhengcraft.entities.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
 public class ZhengCraftMainListener implements Listener {
 
     private final PlayerDataAccessService playerDataAccessService;
-
+    private final BlockDataAccessService blockDataAccessService;
+    Map<UUID, Map<String, Integer>> cache = new HashMap<>();
 
     public ZhengCraftMainListener() {
         this.playerDataAccessService = new PlayerDataAccessService();
+        this.blockDataAccessService = new BlockDataAccessService();
     }
 
     @EventHandler
@@ -37,16 +41,18 @@ public class ZhengCraftMainListener implements Listener {
                 .forEach(System.out::println);
 
         playerDataAccessService.addPlayer.test(new Player(e.getPlayer().getUniqueId(), e.getPlayer().getName()));
-//        playerDataAccessService.addPlayer2(new Player(e.getPlayer().getUniqueId(), e.getPlayer().getName()));
+
+        Block block = new Block(e.getPlayer().getUniqueId(), e.getBlock().getBlockData().getMaterial().toString(), 1);
+        blockDataAccessService.addBlock.test(block);
+    }
+
+    @EventHandler
+    public void onBlockPlaceEvent(BlockPlaceEvent e) {
+        e.getPlayer().sendMessage("You placed a " + e.getBlock().getBlockData().getMaterial());
+
 
 
     }
-
-//    @EventHandler
-//    public void onBlockPlaceEvent(BlockPlaceEvent e) {
-//        e.getPlayer().sendMessage("You placed a " + e.getBlock().getBlockData().getMaterial());
-//
-//    }
 
 
 
@@ -72,5 +78,12 @@ public class ZhengCraftMainListener implements Listener {
 
 //     Map<Player, Map<BlockType, Integer>>
 //    Map<Player, Map<Block, Integer>> cache = new HashMap<>();
+
+//    CREATE TABLE blocks_placed {
+//        material VARCHAR(255),
+//        quantity bigint,
+//        player_id foreign key to player id,
+//        primary key(player_id, material)
+//    }
 
 }
