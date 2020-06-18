@@ -1,3 +1,27 @@
+/*
+ * Copyright 2020-2020 Richard R. Zheng (https://github.com/rzheng95)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is furnished to
+ * do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ *
+ */
+
 package com.rzheng.zhengcraft.dao;
 
 import com.rzheng.zhengcraft.datasource.PostgresDatasource;
@@ -27,21 +51,23 @@ public class BlockDataAccessService {
     }
 
     public Predicate<Block> addBlock = block -> {
-        String sql = "INSERT INTO block (blocks_placed, id, material) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO block (blocks_placed, blocks_destroyed, id, material) VALUES (?, ?, ?, ?)";
 
         Optional<Block> isBlock = this.getBlockByIdAndMaterial.apply(block.getId(), block.getMaterial());
         if (!isBlock.isEmpty()) { // update
-            sql = "UPDATE block SET blocks_placed = ? WHERE id = ? AND material = ?";
+            sql = "UPDATE block SET blocks_placed = ?, blocks_destroyed = ? WHERE id = ? AND material = ?";
         }
 
         try (PreparedStatement statement = connection.prepareStatement(sql);) {
-            if (!isBlock.isEmpty()) {
+            if (!isBlock.isEmpty()) { // already exists
                 statement.setLong(1, isBlock.get().getBlocksPlaced() + block.getBlocksPlaced());
+                statement.setLong(2, isBlock.get().getBlockDestroyed() + block.getBlockDestroyed());
             } else {
                 statement.setLong(1, block.getBlocksPlaced());
+                statement.setLong(2, block.getBlockDestroyed());
             }
-            statement.setObject(2, block.getId());
-            statement.setString(3, block.getMaterial());
+            statement.setObject(3, block.getId());
+            statement.setString(4, block.getMaterial());
             statement.executeUpdate();
             return true;
         } catch (SQLException throwable) {
@@ -63,7 +89,8 @@ public class BlockDataAccessService {
                 UUID blockId = UUID.fromString(resultSet.getString("id"));
                 String material = resultSet.getString("material");
                 long blocks_placed = resultSet.getLong("blocks_placed");
-                blocks.add(new Block(blockId, material, blocks_placed));
+                long blocks_destroyed = resultSet.getLong("blocks_destroyed");
+                blocks.add(new Block(blockId, material, blocks_placed, blocks_destroyed));
             }
 
             resultSet.close();
@@ -88,7 +115,8 @@ public class BlockDataAccessService {
                 UUID blockId = UUID.fromString(resultSet.getString("id"));
                 String blockMaterial = resultSet.getString("material");
                 long blocks_placed = resultSet.getLong("blocks_placed");
-                block = new Block(blockId, blockMaterial, blocks_placed);
+                long blocks_destroyed = resultSet.getLong("blocks_destroyed");
+                block = new Block(blockId, blockMaterial, blocks_placed, blocks_destroyed);
             }
             resultSet.close();
         } catch (SQLException throwable) {
